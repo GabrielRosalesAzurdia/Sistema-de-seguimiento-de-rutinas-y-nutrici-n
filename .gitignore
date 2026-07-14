@@ -1,0 +1,20 @@
+# backend/ y mobile/ son repos git independientes con su propio remoto
+# en GitHub — este repo (raíz) no los trackea ni como submódulos.
+/backend/
+/mobile/
+
+# ML
+ml/data/*.csv
+!ml/data/.gitkeep
+
+# Python (por si se crea un venv suelto en la raíz)
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# General
+.DS_Store
+*.log
+.idea/
+.vscode/
