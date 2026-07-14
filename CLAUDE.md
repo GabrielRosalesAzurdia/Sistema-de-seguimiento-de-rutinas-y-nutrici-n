@@ -185,10 +185,16 @@ vía `/api/auth/login/`. Un solo modelo `User` (`members.User`):
 6. Cuando arranque octubre 2026: usar `ml/training/` para entrenar el
    modelo real con datos exportados de `study-export/`, reemplazando
    el placeholder heurístico en `services.py`.
-7. Revisar cálculo de % grasa / % agua corporal: el anteproyecto dice
-   "el sistema debe calcular" estos valores a partir de medidas —
-   falta implementar la fórmula (p. ej. Navy Method o similar) en
-   `BodyMeasurementLog` o en un signal/serializer de `Member`.
+7. ~~Revisar cálculo de % grasa / % agua corporal~~ — **Resuelto**: se
+   implementó el U.S. Navy Method en
+   `backend/apps/members/services.py::calculate_body_composition`,
+   invocado automáticamente desde `Member.save()`. Requiere
+   `Member.gender` y `Member.neck_cm` (campos nuevos, agregados para
+   esto) además de `waist_cm`/`height_cm`/`hip_cm` ya existentes. El %
+   de agua corporal es una estimación derivada del % de grasa (no hay
+   fórmula Navy estándar para agua) — ver docstring del módulo para la
+   fuente citada. **Implica que el coach debe medir el cuello del
+   miembro desde ahora**, además de las medidas que ya tomaba.
 
 ## 9. Terminología obligatoria (documento académico, mantener consistencia también en código/UI)
 
