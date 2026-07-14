@@ -37,25 +37,24 @@ usando validación cruzada de scikit-learn (`cross_val_score` /
 
 ## Estado actual
 
-⚠️ **No hay datos históricos todavía.** El período de implementación
-es octubre-noviembre 2026; hasta entonces no existen registros reales
-de `WorkoutSessionLog` / `DailyNutritionLog` / `BodyMeasurementLog`
-suficientes para entrenar un modelo con datos propios del gimnasio.
+✅ **Pipeline conectado end-to-end con datos sintéticos** (placeholder,
+no el modelo final de la tesis). Se generó `data/synthetic_training_data.csv`
+con `generate_synthetic_data.py` y se entrenó
+`backend/apps/ml_predictions/trained_models/random_forest_progress_v1.joblib`
+con `train_progress_model.py` — `services.py` ya lo carga y
+`GET /api/ml/me/progress/` devuelve `model_type: "RANDOM_FOREST"` en
+vez de `"HEURISTIC_PLACEHOLDER"`.
 
-Dos caminos posibles, a decidir con el asesor:
+⚠️ **Sigue sin haber datos históricos reales.** El período de
+implementación es octubre-noviembre 2026; hasta entonces este modelo
+entrenado con datos sintéticos es solo una prueba de que el pipeline
+funciona, no una predicción confiable para producción.
 
-1. **Dataset sintético inicial** (`training/generate_synthetic_data.py`):
-   genera datos plausibles para poder programar y probar el pipeline
-   completo end-to-end antes de tener datos reales.
-2. **Reentrenamiento con datos reales** una vez arranque la
-   implementación: exportar desde
-   `GET /api/tracking/study-export/` y usarlo como dataset de
-   entrenamiento real.
-
-Mientras tanto, `backend/apps/ml_predictions/services.py` usa una
-heurística determinística como placeholder para no bloquear el resto
-del desarrollo (dashboard, endpoints, app), y cae automáticamente al
-modelo real en cuanto exista un `.joblib` en `trained_models/`.
+**Reentrenamiento con datos reales** una vez arranque la
+implementación: exportar desde `GET /api/tracking/study-export/`,
+correr `train_progress_model.py` sobre ese CSV real, y reemplazar el
+`.joblib` en `trained_models/` (mismo nombre de archivo, el backend no
+requiere cambios de código).
 
 ## Cómo entrenar (una vez haya datos)
 

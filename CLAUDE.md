@@ -182,9 +182,16 @@ vía `/api/auth/login/`. Un solo modelo `User` (`members.User`):
 5. Definir con el asesor la fórmula exacta de "sesiones planificadas"
    para VD1 y actualizar `StudyExportView` y
    `MyProgressPredictionView`.
-6. Cuando arranque octubre 2026: usar `ml/training/` para entrenar el
-   modelo real con datos exportados de `study-export/`, reemplazando
-   el placeholder heurístico en `services.py`.
+6. ~~Cuando arranque octubre 2026: usar `ml/training/` para entrenar el
+   modelo real~~ — **Parcialmente resuelto**: el pipeline ya está
+   conectado end-to-end con datos **sintéticos**
+   (`ml/training/generate_synthetic_data.py` →
+   `train_progress_model.py` →
+   `backend/apps/ml_predictions/trained_models/random_forest_progress_v1.joblib`).
+   `GET /api/ml/me/progress/` ya usa `model_type: "RANDOM_FOREST"` en
+   vez de la heurística. **Sigue pendiente** reentrenar con datos
+   reales exportados de `study-export/` una vez concluya oct-nov 2026
+   (mismo comando, solo cambia el CSV de entrada).
 7. ~~Revisar cálculo de % grasa / % agua corporal~~ — **Resuelto**: se
    implementó el U.S. Navy Method en
    `backend/apps/members/services.py::calculate_body_composition`,
