@@ -61,6 +61,17 @@ registro, % de semanas con al menos 3 registros, y la misma lógica de
 variación. La columna de variación queda en blanco para miembros con
 menos de 2 semanas de rango activo (dato insuficiente).
 
+**Nota (asimetría intencional en "Variación %")**: VD1 y VD2 calculan
+esa columna con una lógica distinta a propósito, no es una
+inconsistencia a corregir. VD1 compara cada mitad del rango contra la
+meta fija completa (`planned_training_days` **no se prorratea por
+mitad** — es una meta total, no una tasa por fecha). VD2, en cambio,
+recalcula su propio denominador (`active_days`) para cada mitad por
+separado, porque su base ya es date-based por definición (ver arriba)
+— cada mitad tiene su propia ventana de días activos, no la mitad de
+un número fijo. Implementado en
+`backend/apps/tracking/services.py::_compute_secondary_indicators`.
+
 ## 2. Componentes del sistema
 
 1. **App móvil (Android, Flutter)** — `mobile/` — para los ~85-186
