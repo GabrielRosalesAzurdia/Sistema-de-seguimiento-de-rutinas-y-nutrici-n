@@ -27,20 +27,39 @@ antes/después.
 ### Variables de investigación
 - **VI**: Implementación del sistema de seguimiento de rutinas y nutrición.
 - **VD1**: Constancia al plan de entrenamiento = % sesiones completadas / sesiones planificadas.
-- **VD2**: Constancia al plan nutricional = % días con registro / días planificados de dieta.
+- **VD2**: Constancia al plan nutricional = % días con registro / días activos en el sistema.
 
-**Resuelto**: "sesiones planificadas" (VD1) y "días planificados"
-(VD2) son la meta individual que el coach define por miembro al
-registrarlo (`Member.planned_training_days` /
-`Member.planned_nutrition_days`, panel admin, pantalla Miembros), no
+**Resuelto**: "sesiones planificadas" (VD1) es la meta individual que
+el coach define por miembro al registrarlo
+(`Member.planned_training_days`, panel admin, pantalla Miembros), no
 un valor derivado del calendario semanal. Si el miembro completa más
 de lo planificado, el % puede superar 100% (se considera meta
-superada). Implementado en
+superada). **VD2 usa un denominador distinto** (corrección de la
+ronda de feedback E2E v4, para que coincida con la definición
+operacional ya defendida en el Anteproyecto, Capítulo I): "días
+activos en el sistema" = `max(Member.start_date, Member.created_at)`
+hasta el cutoff del rango solicitado (hoy si no hay fin, o el fin si
+ya pasó), acotado siempre al rango pedido —
+`Member.planned_nutrition_days` sigue existiendo en el modelo (lo usa
+el widget "actividad reciente" del Dashboard y el formulario de
+Miembro) pero ya no es el denominador de VD2. Ambas fórmulas
+implementadas en
 `backend/apps/tracking/services.py::compute_study_metrics`, que
 además **excluye por completo a los miembros desactivados**
 (`Member.is_active=False`) del cálculo — no hay campo de fecha de
 baja, así que se excluyen del todo en vez de recortar solo el período
 en que estuvieron activos (feedback de la prueba E2E v3).
+
+El CSV de `GET /api/tracking/study-export/` también incluye, desde la
+ronda v4, 6 indicadores secundarios de la matriz operacional (uno por
+columna, calculados sobre la ventana real de actividad del miembro —
+`max(activation_date, range_start)` hasta el cutoff, con semanas en
+buckets de 7 días): para VD1, frecuencia semanal de sesiones,
+duración promedio registrada y variación de constancia (segunda mitad
+del rango menos primera mitad); para VD2, frecuencia semanal de
+registro, % de semanas con al menos 3 registros, y la misma lógica de
+variación. La columna de variación queda en blanco para miembros con
+menos de 2 semanas de rango activo (dato insuficiente).
 
 ## 2. Componentes del sistema
 

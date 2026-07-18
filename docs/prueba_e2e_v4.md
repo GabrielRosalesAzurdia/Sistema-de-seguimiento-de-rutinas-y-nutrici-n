@@ -105,6 +105,9 @@ planes "activos" para el mismo miembro.
    temporal que se usa al crear un miembro (fondo oscuro, botón
    "Copiar", botón "Cerrar"), con una contraseña nueva.
 3. **Acción:** copia la contraseña, cierra el modal.
+
+xax1RxQVShjd
+
    **Acción:** en la app móvil, intenta iniciar sesión con las
    credenciales viejas de ese miembro (la contraseña que tenía antes).
    **Resultado esperado:** el login **falla** — la contraseña anterior
