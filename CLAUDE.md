@@ -36,7 +36,11 @@ registrarlo (`Member.planned_training_days` /
 un valor derivado del calendario semanal. Si el miembro completa más
 de lo planificado, el % puede superar 100% (se considera meta
 superada). Implementado en
-`backend/apps/tracking/services.py::compute_study_metrics`.
+`backend/apps/tracking/services.py::compute_study_metrics`, que
+además **excluye por completo a los miembros desactivados**
+(`Member.is_active=False`) del cálculo — no hay campo de fecha de
+baja, así que se excluyen del todo en vez de recortar solo el período
+en que estuvieron activos (feedback de la prueba E2E v3).
 
 ## 2. Componentes del sistema
 
@@ -80,6 +84,11 @@ REST Framework + PostgreSQL + scikit-learn + Render** (hosting).
   (`User.must_change_password`, ver `ChangePasswordScreen` en
   `mobile/` y `ChangePasswordView` en `apps/members/`); después de
   cambiarla también queda disponible como opción normal en Perfil.
+  Si el miembro la olvida, el coach puede generar una nueva
+  contraseña temporal en cualquier momento desde **Editar Miembro**
+  (botón "Generar nueva contraseña", `MemberResetPasswordView`) —
+  mismo patrón: modal de una sola vez + `must_change_password=True`
+  de nuevo.
 - **Próximo pago se calcula desde el último pago registrado, no desde
   la fecha de inicio.** `Member.start_date` (fecha en que el miembro
   se unió al gym) es fija desde la creación y ya no se puede reeditar
@@ -116,7 +125,16 @@ REST Framework + PostgreSQL + scikit-learn + Render** (hosting).
   vence y se regenera solo cada 30 días desde su aprobación (chequeo
   lazy al abrir la pantalla Nutrición del panel, no hay cron), y el
   coach puede forzar una regeneración manual con el botón "Generar
-  nueva dieta" en Editar Miembro. La heurística **nunca** llena las
+  nueva dieta" en Editar Miembro. **Solo un plan por miembro puede
+  estar `APPROVED`/vigente a la vez**: al aprobar un plan nuevo, el
+  plan `APPROVED` anterior del mismo miembro pasa a status
+  `SUPERSEDED` (no se queda `APPROVED` para siempre) y su detalle
+  pasa a ser de solo lectura, sin botones de acción — antes este bug
+  permitía que un plan reemplazado siguiera apareciendo como
+  "aprobado" en el panel, y que "Rechazarlo" disparara otra
+  generación automática, acumulando varios planes "activos" para el
+  mismo miembro (feedback de la prueba E2E v3). La heurística
+  **nunca** llena las
   sugerencias de platillo (`suggestion_1/2/3`) — esas siempre las
   escribe el coach al 100%. Se guarda un snapshot de lo sugerido
   originalmente (`NutritionPlan.ml_suggested_*`) para comparar contra
@@ -158,6 +176,14 @@ REST Framework + PostgreSQL + scikit-learn + Render** (hosting).
      vez del Dashboard; sin flecha de back, con salida de emergencia
      "Cerrar sesión". La misma pantalla se reusa, no obligatoria,
      desde Perfil.
+   - Si el backend responde 401 de forma persistente incluso después
+     de refrescar el token (ej. el coach desactiva al miembro con la
+     sesión abierta en el celular), `ApiClient`
+     (`core/api_client.dart`) fuerza un logout local y navega de
+     vuelta a Login vía un `navigatorKey` global
+     (`core/navigation.dart`) — antes esto entraba en un loop
+     infinito de reintentos (refresh 200 + reintento 401 sin límite,
+     feedback de la prueba E2E v3).
 2. **Inicio / Dashboard** — peso actual/meta, % grasa, % agua, días
    para meta (ML), racha, macros del día, semáforo nutricional,
    calorías quemadas totales, rutina de hoy — `dashboard_screen.dart`
@@ -201,13 +227,17 @@ Pantallas:
     `IntegrityError`), teléfono, edad, género, altura, meta/objetivo,
     **días planificados de rutina/dieta (mensuales)**, fecha de inicio
     (fija desde la creación, no reeditable), próximo pago, botones
-    Cancelar / Pagado / Generar nueva dieta / Desactivar Usuario
-    (Reactivar Usuario si ya está inactivo) — estos dos últimos son
-    ahora una vista independiente (`MemberToggleActiveView`) que NO
-    depende de validar el formulario completo, y desactiva tanto al
-    `Member` como al `User` (bloquea también el login en la app). Al
-    crear, genera una contraseña aleatoria mostrada en un modal (el
-    coach se la comparte al miembro por su medio habitual).
+    Cancelar / Pagado / Generar nueva dieta / Generar nueva
+    contraseña / Desactivar Usuario (Reactivar Usuario si ya está
+    inactivo) — Desactivar/Reactivar son ahora una vista independiente
+    (`MemberToggleActiveView`) que NO depende de validar el
+    formulario completo, y desactiva tanto al `Member` como al `User`
+    (bloquea también el login en la app). Al crear, genera una
+    contraseña aleatoria mostrada en un modal (el coach se la
+    comparte al miembro por su medio habitual); "Generar nueva
+    contraseña" (`MemberResetPasswordView`) reusa el mismo modal para
+    resetear la de un miembro que la olvidó, sin pasar por el
+    formulario completo tampoco.
   - **"Actualizar datos fitness"** (`/panel/miembros/<pk>/fitness/`):
     peso + todas las medidas corporales + cuello. Cada guardado crea
     un `tracking.BodyMeasurementLog` nuevo (alimenta la gráfica de
