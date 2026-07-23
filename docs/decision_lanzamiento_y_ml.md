@@ -13,6 +13,11 @@ backend se despliega en Render.com como web service.
 2. Entrenamiento de modelos con el backend en Render
 3. Proceso de recolección de datos y entrenamiento, paso a paso
 
+> Nota de infraestructura (2026-07-22): la base de datos de producción
+> es **Neon Postgres (free tier)**, no Render Postgres — ver
+> `docs/migracion_neon_render.md` para el plan de contingencia si el
+> consumo de CU-horas se acerca al tope mensual durante el estudio.
+
 ---
 
 ## 1. ¿Se puede lanzar antes de octubre sin afectar el diseño de tesis?
