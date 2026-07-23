@@ -1,4 +1,4 @@
-# Guía paso a paso — Primer despliegue a producción (Render + APK)
+# Guía paso a paso — Primer despliegue a producción (Render + Neon + APK)
 
 Fecha de esta guía: 2026-07-22. Escrita para el lanzamiento piloto en
 el gimnasio Fitness Club, después de varias rondas de pruebas E2E.
@@ -24,14 +24,14 @@ del proyecto). Resumen de esas decisiones:
   adelante.
 
 Los cambios de código que este despliegue necesita (Dockerfile,
-`settings.py`, `.env.example`) **ya están commiteados y pusheados** al
-repo del backend (`main`, commit `a6c7724`). Lo que falta es 100%
-manual, en el dashboard de Render y en tu máquina para el APK. Esta
-guía cubre eso.
+`settings.py`, `.env.example`, soporte de `DB_SSLMODE`, el `.joblib`
+del modelo ML ya commiteado) **ya están en `main`** del repo del
+backend. Lo que falta es 100% manual, en los dashboards de Neon y
+Render y en tu máquina para el APK. Esta guía cubre eso.
 
 ---
 
-## Parte A — Backend en Render
+## Parte A — Backend en Render + base de datos en Neon
 
 ### A.1 Crear la cuenta y conectar GitHub
 
